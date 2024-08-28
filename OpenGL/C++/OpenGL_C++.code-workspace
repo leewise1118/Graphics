@@ -8,7 +8,6 @@
     //[[clangd]]
     "C_Cpp.intelliSenseEngine": "disabled",
     "clangd.checkUpdates": false,
-    "clangd.path": "C:/msys64/mingw64/bin/clangd.exe",
     "clangd.arguments": [
       "--background-index",
       "-j=12",
@@ -19,7 +18,8 @@
       "--completion-style=detailed",
       "--header-insertion=iwyu",
       "--pch-storage=disk",
-      "-stdlib=libc++"
+    //   "-stdlib=libc++",
+      "--compile-commands-dir=./build"
     ]
   }
 }

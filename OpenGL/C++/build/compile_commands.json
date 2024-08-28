@@ -1,7 +1,7 @@
 [
 {
   "directory": "D:/code/Graphics/OpenGL/C++/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -g -o CMakeFiles\\main.dir\\main.cpp.obj -c D:\\code\\Graphics\\OpenGL\\C++\\main.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\clang++.exe -g -o CMakeFiles\\main.dir\\main.cpp.obj -c D:\\code\\Graphics\\OpenGL\\C++\\main.cpp",
   "file": "D:\\code\\Graphics\\OpenGL\\C++\\main.cpp"
 }
 ]

@@ -41,7 +41,7 @@
 						"kernel32"
 					]
 				},
-				"path" : "C:/msys64/mingw64/bin/gcc.exe",
+				"path" : "C:/msys64/mingw64/bin/clang.exe",
 				"version" : "12.2.0"
 			},
 			"language" : "C",
@@ -96,7 +96,7 @@
 						"kernel32"
 					]
 				},
-				"path" : "C:/msys64/mingw64/bin/g++.exe",
+				"path" : "C:/msys64/mingw64/bin/clang++.exe",
 				"version" : "12.2.0"
 			},
 			"language" : "CXX",
