@@ -1,32 +1,36 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
+# 忽略C++编译生成的文件
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
 *.so
-*.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
+*.dylib
+*.exe
+*.out
 *.a
 *.lib
 
-# Executables
-*.exe
-*.out
-*.app
+# 忽略C++编译生成的文件
+/build/
+
+# 忽略Rust编译生成的文件
+/target/
+
+# 忽略VSCode配置文件
+.vscode/
+
+# 忽略其他常见的临时文件
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# 保留源文件和配置文件
+!.gitignore
+!*.cpp
+!*.h
+!*.hpp
+!*.rs
+!Cargo.toml
+!Cargo.lock
+!CMakeLists.txt
