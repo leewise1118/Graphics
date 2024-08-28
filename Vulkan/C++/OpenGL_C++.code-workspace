@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    //[[clangd]]
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "clangd.checkUpdates": false,
+    "clangd.path": "C:/msys64/mingw64/bin/clangd.exe",
+    "clangd.arguments": [
+      "--background-index",
+      "-j=12",
+      "--query-driver=C:/msys64/mingw64/bin/clang++.exe",
+      "--clang-tidy",
+      "--clang-tidy-checks=performance-*,bugprone-*",
+      "--all-scopes-completion",
+      "--completion-style=detailed",
+      "--header-insertion=iwyu",
+      "--pch-storage=disk",
+      "-stdlib=libc++"
+    ]
+  }
+}

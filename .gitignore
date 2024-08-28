@@ -9,13 +9,13 @@
 *.a
 *.lib
 
-# 忽略C++编译生成的文件
-./OpenGL/C++/build/
-./Vulkan/C++/build/
+# 忽略C++编译生成的文件夹
+/OpenGL/C++/build/
+/Vulkan/C++/build/
 
 # 忽略Rust编译生成的文件
-./OpenGL/Rust/target/
-./Vulkan/Rust/target/
+/OpenGL/Rust/target/
+/Vulkan/Rust/target/
 
 # 忽略VSCode配置文件
 .vscode/
