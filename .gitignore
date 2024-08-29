@@ -20,6 +20,9 @@
 # 忽略VSCode配置文件
 #.vscode/
 
+# 忽略clangd生成的临时文件
+.cache/
+
 # 忽略其他常见的临时文件
 *.log
 *.tmp
