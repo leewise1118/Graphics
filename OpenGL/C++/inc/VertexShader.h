@@ -23,7 +23,7 @@ public:
     ~OpenGLVertexShader();
 
     auto createShader()->Result<self,VertexShaderError>;
-    auto shaderSource()->Result<self,VertexShaderError>;
+    auto shaderSource(GLsizei count, const GLchar *const* GLSL_source , const GLint *length)->Result<self,VertexShaderError>;
     auto compileShader()->Result<self,VertexShaderError>;
 
 private:

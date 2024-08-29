@@ -23,11 +23,15 @@ auto OpenGLVertexShader::createShader()->Result<self,VertexShaderError>{
     return Ok(shared_from_this());
 }
 
-auto OpenGLVertexShader::shaderSource()->Result<self,VertexShaderError>{
-
+auto OpenGLVertexShader::shaderSource(GLsizei count, const GLchar *const* GLSL_source, const GLint *length)->Result<self,VertexShaderError>{
+    OPENGL_EXTENSION_HANDLE->glShaderSource(m_vertexShader, count, GLSL_source, length);
+    // TODO: check error
+    
+    return Ok(shared_from_this());
 }
 auto OpenGLVertexShader::compileShader()->Result<self,VertexShaderError>{
 
+    return Ok(shared_from_this());
 }
 
 }

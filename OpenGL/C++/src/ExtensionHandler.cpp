@@ -58,10 +58,15 @@ void OpenGLExtensionHandler::glVertexAttribPointer(GLuint index, GLint size, GLe
  * @return {*}
  */
 void OpenGLExtensionHandler::glEnableVertexAttribArray(GLuint index){
-
+    if(m_pGLEnableVertexAttribArray){
+        m_pGLEnableVertexAttribArray(index);
+    }
 }
 
 void OpenGLExtensionHandler::glBindVertexArray(GLuint array){
+    if(m_pGLBindVertexArray){
+        m_pGLBindVertexArray(array);
+    }
 
 }
 
@@ -70,6 +75,12 @@ GLuint OpenGLExtensionHandler::glCreateShader(GLenum type){
         return m_pGLCreateShader(type);
     }
     return 0;
+}
+
+void OpenGLExtensionHandler::glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length){
+    if(m_pGLShaderSource){
+        m_pGLShaderSource(shader,count,string,length);
+    }
 }
 
 }
