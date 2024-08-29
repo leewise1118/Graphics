@@ -6,10 +6,5 @@ set(CMAKE_CXX_COMPILER  C:/msys64/mingw64/bin/clang++.exe)
 
 add_executable(main main.cpp)
 
-<<<<<<< HEAD
-# 设置生成compile_commands.json文件
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-=======
 # 编译complie_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
->>>>>>> e66d905a9578fdb5ebb558ed424f24d3d20fe874

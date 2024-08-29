@@ -1,0 +1,21 @@
+{
+    "languageServers":{
+        "cpp"：{
+            "command":"clangd",
+            "args": [
+                "--background-index",
+                "-j=12",
+                "--query-driver=C:/msys64/mingw64/bin/clang++.exe",
+                "--clang-tidy",
+                "--clang-tidy-checks=performance-*,bugprone-*",
+                "--all-scopes-completion",
+                "--completion-style=detailed",
+                "--header-insertion=iwyu",
+                "--pch-storage=disk",
+                //"-stdlib=libc++"
+                // 设置c_compiler_path和cpp_compiler_path
+                "--compile-commands-dir=./build",
+            ],
+        }
+    }
+}
