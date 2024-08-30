@@ -17,7 +17,7 @@ public:
 
     void initialize();
 
-    void loadFunction(const char* name);
+    void* loadFunction(const char* name);
 
     void glViewport();
 
@@ -29,8 +29,8 @@ public:
 
     // VBO
     void glGenBuffers(GLsizei n, GLuint *buffers);
-    void glBindBuffer();
-    void glBufferData();
+    void glBindBuffer(GLenum target, GLuint buffer);
+    void glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage);
 
     // shader
     GLuint glCreateShader(GLenum type);
@@ -49,6 +49,7 @@ public:
 
 
 private:
+    void *m_hOpenGLLib;
     // VAO
     PFNGLGENVERTEXARRAYSPROC m_pGLGenVertexArrays;
     PFNGLVERTEXATTRIBPOINTERPROC m_pGLVertexAttribPointer;
@@ -56,6 +57,9 @@ private:
     PFNGLBINDVERTEXARRAYPROC m_pGLBindVertexArray;
 
     // VBO
+    PFNGLGENBUFFERSPROC m_pGLGenBuffers;
+    PFNGLBINDBUFFERPROC m_pGLBindBuffer;
+    PFNGLBUFFERDATAPROC m_pGLBufferData;
 
     // shader
     PFNGLCREATESHADERPROC m_pGLCreateShader;
@@ -67,10 +71,13 @@ private:
     PFNGLDELETESHADERPROC m_pGLDeleteShader;
 
     // program
-
+    PFNGLLINKPROGRAMPROC m_pGLLinkProgram;
+    PFNGLGETPROGRAMIVPROC m_pGLGetProgramiv;
+    PFNGLGETPROGRAMINFOLOGPROC m_pGLGetProgramInfoLog;
 
     // frame
     PFNGLBINDFRAMEBUFFERPROC m_pGlBindFrameBuffer;
+
 
 };
 

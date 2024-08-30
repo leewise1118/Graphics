@@ -1,0 +1,3 @@
+[[language]]
+name = "cpp"
+language-servers = { command = "c:\\Users\\10767\\AppData\\Roaming\\Code\\User\\globalStorage\\llvm-vs-code-extensions.vscode-clangd\\install\\18.1.3\\clangd_18.1.3\\bin\\clangd.exe", args = [ "--compile-commands-dir=D:/code/Graphics/OpenGL/C++/build" ] }

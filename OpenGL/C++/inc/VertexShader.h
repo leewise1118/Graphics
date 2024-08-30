@@ -11,7 +11,7 @@ namespace OGL{
 
 
 class OpenGLVertexShader: public std::enable_shared_from_this<OpenGLVertexShader>{
-    using self = std::shared_ptr<OpenGLVertexShader>;
+    using Ptr = std::shared_ptr<OpenGLVertexShader>;
     enum VertexShaderError{
         CreateError,
         DeleteError,
@@ -22,9 +22,9 @@ public:
     OpenGLVertexShader();
     ~OpenGLVertexShader();
 
-    auto createShader()->Result<self,VertexShaderError>;
-    auto shaderSource(GLsizei count, const GLchar *const* GLSL_source , const GLint *length)->Result<self,VertexShaderError>;
-    auto compileShader()->Result<self,VertexShaderError>;
+    auto createShader()->Result<Ptr,VertexShaderError>;
+    auto shaderSource(GLsizei count, const GLchar *const* GLSL_source , const GLint *length)->Result<Ptr,VertexShaderError>;
+    auto compileShader()->Result<Ptr,VertexShaderError>;
 
 private:
     GLuint m_vertexShader;

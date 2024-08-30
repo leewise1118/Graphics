@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.2)
 project(OpenGL_demo)
+
 set(CMAKE_AR  C:/msys64/mingw64/bin/ar.exe)
 set(CMAKE_C_COMPILER  C:/msys64/mingw64/bin/clang.exe)
 set(CMAKE_CXX_COMPILER  C:/msys64/mingw64/bin/clang++.exe)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
 
 # 设置生成compile_commands.json文件
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -15,8 +21,10 @@ file(GLOB_RECURSE SOURCE_FILES "src/*.cpp")
 include_directories(inc)
 
 find_package(OpenGL REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets OpenGL REQUIRED)
 
 # 生成可执行文件
 add_executable(OpenGL_demo main.cpp ${HEADER_FILES} ${SOURCE_FILES})
 
 target_link_libraries(OpenGL_demo OpenGL::GL)
+target_link_libraries(OpenGL_demo Qt5::Core Qt5::Gui Qt5::Widgets Qt5::OpenGL )

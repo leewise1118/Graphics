@@ -15,7 +15,7 @@ OpenGLVertexShader::~OpenGLVertexShader(){
 }
 
 
-auto OpenGLVertexShader::createShader()->Result<self,VertexShaderError>{
+auto OpenGLVertexShader::createShader()->Result<Ptr,VertexShaderError>{
     m_vertexShader = OPENGL_EXTENSION_HANDLE->glCreateShader(GL_VERTEX_SHADER);
     if(0 == m_vertexShader){
         return Err(VertexShaderError::CreateError);
@@ -23,13 +23,13 @@ auto OpenGLVertexShader::createShader()->Result<self,VertexShaderError>{
     return Ok(shared_from_this());
 }
 
-auto OpenGLVertexShader::shaderSource(GLsizei count, const GLchar *const* GLSL_source, const GLint *length)->Result<self,VertexShaderError>{
+auto OpenGLVertexShader::shaderSource(GLsizei count, const GLchar *const* GLSL_source, const GLint *length)->Result<Ptr,VertexShaderError>{
     OPENGL_EXTENSION_HANDLE->glShaderSource(m_vertexShader, count, GLSL_source, length);
     // TODO: check error
     
     return Ok(shared_from_this());
 }
-auto OpenGLVertexShader::compileShader()->Result<self,VertexShaderError>{
+auto OpenGLVertexShader::compileShader()->Result<Ptr,VertexShaderError>{
 
     return Ok(shared_from_this());
 }
