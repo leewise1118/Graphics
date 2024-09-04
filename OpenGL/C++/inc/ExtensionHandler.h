@@ -4,6 +4,8 @@
 #include "BaseType.h"
 #include <GL/gl.h>
 #include <GL/glext.h> // 定义了很多OpenGL函数指针
+#include <QOpenGLContext>
+#include <qwindow.h>
 
 namespace OGL{
 
@@ -50,6 +52,8 @@ public:
 
 private:
     void *m_hOpenGLLib;
+    QOpenGLContext* m_context;
+    QWindow* m_window;
     // VAO
     PFNGLGENVERTEXARRAYSPROC m_pGLGenVertexArrays;
     PFNGLVERTEXATTRIBPOINTERPROC m_pGLVertexAttribPointer;

@@ -2,6 +2,11 @@
 #include <GL/gl.h>
 #include <iostream>
 #include <libloaderapi.h>
+#include <minwindef.h>
+#include <qsurfaceformat.h>
+#include <qwindow.h>
+#include <wingdi.h>
+#include <QDebug>
 
 #define __WINDOWS__ 1
 
@@ -20,6 +25,8 @@ namespace OGL {
 
 OpenGLExtensionHandler::OpenGLExtensionHandler()
    :m_hOpenGLLib(nullptr),
+    m_context(nullptr),
+    m_window(nullptr),
     m_pGLGenVertexArrays(nullptr),
     m_pGLVertexAttribPointer(nullptr),
     m_pGLEnableVertexAttribArray(nullptr),
@@ -37,18 +44,50 @@ OpenGLExtensionHandler::OpenGLExtensionHandler()
     m_pGLLinkProgram(nullptr),
     m_pGLGetProgramiv(nullptr),
     m_pGLGetProgramInfoLog(nullptr),
-    m_pGlBindFrameBuffer(nullptr)
-    {
-    m_hOpenGLLib = LoadDynamicLibrary("opengl32.dll");
-    if(!m_hOpenGLLib){
-        std::cerr << "LoadLibrary failed" << std::endl;
+    m_pGlBindFrameBuffer(nullptr){
+    
+    m_window = new QWindow();
+    m_window->setSurfaceType(QWindow::OpenGLSurface);
+
+    QSurfaceFormat format;
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    m_window->setFormat(format);
+    m_window->create();
+
+    m_context = new QOpenGLContext();
+    m_context->setFormat(format);
+    if (!m_context->create()) {
+        qDebug() << "QOpenGLContext::create() failed";
+        return;
     }
+
+    if (!m_context->makeCurrent(m_window)) {
+        qDebug() << "QOpenGLContext::makeCurrent() failed";
+        return;
+    }
+
+    m_hOpenGLLib = LoadLibrary("opengl32.dll");
+    if (!m_hOpenGLLib) {
+        DWORD error = GetLastError();
+        std::cerr << "LoadLibrary failed with error code " << error << std::endl;
+        return;
+    }
+    // m_hOpenGLLib = LoadDynamicLibrary("C:\\Windows\\System32\\opengl32.dll");
+    // if(!m_hOpenGLLib){
+    //     std::cerr << "LoadLibrary failed" << std::endl;
+    // }
     initialize();
 }
 
 OpenGLExtensionHandler::~OpenGLExtensionHandler(){
     if(m_hOpenGLLib){
         FreeDynamicLibrary((HMODULE)m_hOpenGLLib);
+    }
+    if(m_context){
+        delete m_context;
+    }
+    if(m_window){
+        delete m_window;
     }
 
 }
@@ -83,7 +122,12 @@ void* OpenGLExtensionHandler::loadFunction(const char* functionName){
         std::cerr<<"OpenGL library not loaded"<<std::endl;
         return nullptr;
     }
-    void *pFunc = (void*)GetFunctionAddress(m_hOpenGLLib,functionName);
+    void* pFunc = nullptr;
+    pFunc = (void*)wglGetProcAddress(functionName);
+    if(!pFunc || ( pFunc == (void*)0x1) || (pFunc == (void*)0x2) || (pFunc == (void*)0x3) ||(pFunc == (void*)-1) ){
+        std::cerr<<"wglGetProcAddress failed to load function "<< functionName <<std::endl;
+        pFunc = (void*)GetFunctionAddress(m_hOpenGLLib,functionName);
+    }
     if(!pFunc){
         std::cerr<<"Failed to load function "<< functionName <<std::endl;
     }
@@ -169,10 +213,28 @@ GLuint OpenGLExtensionHandler::glCreateShader(GLenum type){
     }
     return 0;
 }
-
+/**
+ * @description: 将着色器源码附着到着色器对象上
+ * @param {GLuint} shader: 着色器对象
+ * @param {GLenum} pname: 传递源码字符串数量
+ * @param {const GLchar *const*string}: 着色器源码
+ * @param {const GLint*} length: TODO:
+ * @return {*}
+ */
 void OpenGLExtensionHandler::glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length){
     if(m_pGLShaderSource){
         m_pGLShaderSource(shader,count,string,length);
+    }
+}
+
+/**
+ * @description: 编译着色器对象
+ * @param {GLuint} shader: 着色器对象
+ * @return {*}
+ */
+void OpenGLExtensionHandler::glCompileShader(GLuint shader){
+    if (m_pGLCompileShader) {
+        m_pGLCompileShader(shader);
     }
 }
 
@@ -192,13 +254,6 @@ void OpenGLExtensionHandler::glAttachShader(GLuint program, GLuint shader){
     if(m_pGLAttachShader){
         m_pGLAttachShader(program,shader);
     }   
-
-}
-void OpenGLExtensionHandler::glCompileShader(GLuint shader){
-    if (m_pGLCompileShader) {
-        m_pGLCompileShader(shader);
-    
-    }
 
 }
 void OpenGLExtensionHandler::glDeleteShader(GLuint shader){

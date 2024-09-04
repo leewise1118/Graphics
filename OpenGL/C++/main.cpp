@@ -5,6 +5,7 @@
 #include <QOpenGLWindow>
 #include <QOpenGLWidget>
 #include "ExtensionHandler.h"
+#include "VertexShader.h"
 #include <QOpenGLShader>
 #include <QTime>
 #include <QTimer>
@@ -22,6 +23,10 @@ class OpenGLWindows: public QOpenGLWidget, public QOpenGLFunctions_4_5_Core{
         timer->start(16);
     }
     ~OpenGLWindows(){
+        if(handler){
+            delete handler;
+            handler = nullptr;
+        }
     }
 
     void initializeGL() override{
@@ -44,6 +49,8 @@ class OpenGLWindows: public QOpenGLWidget, public QOpenGLFunctions_4_5_Core{
             color = vec4(fragColor, 1.0);
         }
         )";
+        OGL::OGLVertexShader vertexShader = OGL::OGLVertexShader();
+        vertexShader.Create().GetSourceFrom(&vertexShaderSource).Compile();
 
         // 初始化着色器程序
         shaderProgram = new QOpenGLShaderProgram();

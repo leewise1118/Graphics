@@ -1,37 +1,46 @@
+#include "Shader.h"
 #include "VertexShader.h"
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <memory>
+#include <qdebug.h>
 #include "ExtensionHandler.h"
 
 namespace OGL{
 
 
-OpenGLVertexShader::OpenGLVertexShader(){
-    createShader();
+OGLVertexShader::OGLVertexShader(){
 }
-OpenGLVertexShader::~OpenGLVertexShader(){
+OGLVertexShader::~OGLVertexShader(){
 
 }
 
 
-auto OpenGLVertexShader::createShader()->Result<Ptr,VertexShaderError>{
-    m_vertexShader = OPENGL_EXTENSION_HANDLE->glCreateShader(GL_VERTEX_SHADER);
+GLuint OGLVertexShader::glCreateShader(GLenum type){
+    return OPENGL_EXTENSION_HANDLE->glCreateShader(type);
+}
+
+auto OGLVertexShader::Create()->OGLVertexShader&{
+    m_vertexShader = glCreateShader(GL_VERTEX_SHADER);
     if(0 == m_vertexShader){
-        return Err(VertexShaderError::CreateError);
+        qDebug()<<"Create vertex shader error";
     }
-    return Ok(shared_from_this());
+    return *this;
 }
 
-auto OpenGLVertexShader::shaderSource(GLsizei count, const GLchar *const* GLSL_source, const GLint *length)->Result<Ptr,VertexShaderError>{
-    OPENGL_EXTENSION_HANDLE->glShaderSource(m_vertexShader, count, GLSL_source, length);
-    // TODO: check error
+void OGLVertexShader::glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length){
+    OPENGL_EXTENSION_HANDLE->glShaderSource(shader,count,string,length);
+}
+
+auto OGLVertexShader::GetSourceFrom(const GLchar *const* GLSL_source)->OGLVertexShader&{
+    glShaderSource(m_vertexShader,1,GLSL_source,NULL);
     
-    return Ok(shared_from_this());
+    return *this;
 }
-auto OpenGLVertexShader::compileShader()->Result<Ptr,VertexShaderError>{
 
-    return Ok(shared_from_this());
+auto OGLVertexShader::Compile()->OGLVertexShader&{
+    OPENGL_EXTENSION_HANDLE->glCompileShader(m_vertexShader);
+    return *this;
 }
 
 }
