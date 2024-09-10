@@ -21,6 +21,10 @@
       "--pch-storage=disk",
       //   "-stdlib=libc++",
       "--compile-commands-dir=./build"
-    ]
+    ],
+    "glsllint.additionalStageAssociations": {
+        ".fs": "frag",
+        ".vs": "vert"
+    },
   }
 }

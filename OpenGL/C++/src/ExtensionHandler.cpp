@@ -1,5 +1,6 @@
 #include "ExtensionHandler.h"
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include <iostream>
 #include <libloaderapi.h>
 #include <minwindef.h>
@@ -7,8 +8,6 @@
 #include <qwindow.h>
 #include <wingdi.h>
 #include <QDebug>
-
-#define __WINDOWS__ 1
 
 #ifdef __WINDOWS__
     #define LoadDynamicLibrary(dynamicLibraryPath) LoadLibrary(dynamicLibraryPath)
@@ -19,6 +18,17 @@
     #define FreeDynamicLibrary(handle) dlclose(handle)
     #define GetFunctionAddress(handle,functionName) dlsym(handle,functionName)
 #endif
+
+
+#ifdef _DEBUG
+#define GL_ERROR_CHECK() do\
+{\
+    CheckOpenGLError(__FUNCTION__,__FILE__,__LINE__);\
+}while(0)
+#else
+#define GL_ERROR_CHECK()
+#endif
+
 
 
 namespace OGL {
@@ -38,13 +48,18 @@ OpenGLExtensionHandler::OpenGLExtensionHandler()
     m_pGLShaderSource(nullptr),
     m_pGLGetShaderiv(nullptr),
     m_pGLGetShaderInfoLog(nullptr),
-    m_pGLAttachShader(nullptr),
     m_pGLCompileShader(nullptr),
     m_pGLDeleteShader(nullptr),
+
+    m_pGLCreateProgram(nullptr),
+    m_pGLAttachShader(nullptr),
     m_pGLLinkProgram(nullptr),
+    m_pGLUseProgram(nullptr),
+
     m_pGLGetProgramiv(nullptr),
     m_pGLGetProgramInfoLog(nullptr),
-    m_pGlBindFrameBuffer(nullptr){
+    m_pGlBindFrameBuffer(nullptr),
+    m_pGlGetError(nullptr) {
     
     m_window = new QWindow();
     m_window->setSurfaceType(QWindow::OpenGLSurface);
@@ -72,10 +87,6 @@ OpenGLExtensionHandler::OpenGLExtensionHandler()
         std::cerr << "LoadLibrary failed with error code " << error << std::endl;
         return;
     }
-    // m_hOpenGLLib = LoadDynamicLibrary("C:\\Windows\\System32\\opengl32.dll");
-    // if(!m_hOpenGLLib){
-    //     std::cerr << "LoadLibrary failed" << std::endl;
-    // }
     initialize();
 }
 
@@ -83,11 +94,12 @@ OpenGLExtensionHandler::~OpenGLExtensionHandler(){
     if(m_hOpenGLLib){
         FreeDynamicLibrary((HMODULE)m_hOpenGLLib);
     }
+    //TODO: 为什么这里会报错？
+    // if(m_window){
+    //     delete m_window;
+    // }
     if(m_context){
         delete m_context;
-    }
-    if(m_window){
-        delete m_window;
     }
 
 }
@@ -106,15 +118,19 @@ void OpenGLExtensionHandler::initialize(){
     m_pGLShaderSource = (PFNGLSHADERSOURCEPROC)loadFunction("glShaderSource");
     m_pGLGetShaderiv = (PFNGLGETSHADERIVPROC)loadFunction("glGetShaderiv");
     m_pGLGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)loadFunction("glGetShaderInfoLog");
-    m_pGLAttachShader = (PFNGLATTACHSHADERPROC)loadFunction("glAttachShader");
     m_pGLCompileShader = (PFNGLCOMPILESHADERPROC)loadFunction("glCompileShader");
     m_pGLDeleteShader = (PFNGLDELETESHADERPROC)loadFunction("glDeleteShader");
 
+    m_pGLCreateProgram = (PFNGLCREATEPROGRAMPROC)loadFunction("glCreateProgram");
+    m_pGLAttachShader = (PFNGLATTACHSHADERPROC)loadFunction("glAttachShader");
     m_pGLLinkProgram = (PFNGLLINKPROGRAMPROC)loadFunction("glLinkProgram");
+    m_pGLUseProgram = (PFNGLUSEPROGRAMPROC)loadFunction("glUseProgram");
     m_pGLGetProgramiv = (PFNGLGETPROGRAMIVPROC)loadFunction("glGetProgramiv");
     m_pGLGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)loadFunction("glGetProgramInfoLog");
 
     m_pGlBindFrameBuffer = (PFNGLBINDFRAMEBUFFERPROC)loadFunction("glBindFrameBuffer");
+
+    m_pGlGetError = (PFNGLGETERRORPROC)loadFunction("glGetError");
 }
 
 void* OpenGLExtensionHandler::loadFunction(const char* functionName){
@@ -125,7 +141,6 @@ void* OpenGLExtensionHandler::loadFunction(const char* functionName){
     void* pFunc = nullptr;
     pFunc = (void*)wglGetProcAddress(functionName);
     if(!pFunc || ( pFunc == (void*)0x1) || (pFunc == (void*)0x2) || (pFunc == (void*)0x3) ||(pFunc == (void*)-1) ){
-        std::cerr<<"wglGetProcAddress failed to load function "<< functionName <<std::endl;
         pFunc = (void*)GetFunctionAddress(m_hOpenGLLib,functionName);
     }
     if(!pFunc){
@@ -168,7 +183,6 @@ void OpenGLExtensionHandler::glVertexAttribPointer(GLuint index, GLint size, GLe
     if(m_pGLVertexAttribPointer){
         m_pGLVertexAttribPointer(index,size,type,normalized,stride,pointer);
     }
-
 }
 /**
  * @description: 
@@ -185,26 +199,22 @@ void OpenGLExtensionHandler::glBindVertexArray(GLuint array){
     if(m_pGLBindVertexArray){
         m_pGLBindVertexArray(array);
     }
-
 }
 
 void OpenGLExtensionHandler::glGenBuffers(GLsizei n, GLuint *buffers){
     if(m_pGLGenBuffers){
         m_pGLGenBuffers(n,buffers);
     }
-
 }
 void OpenGLExtensionHandler::glBindBuffer(GLenum target, GLuint buffer){
     if(m_pGLBindBuffer){
         m_pGLBindBuffer(target,buffer);
     }
-
 }
 void OpenGLExtensionHandler::glBufferData(GLenum target, GLsizeiptr size, const void *data, GLenum usage){
     if(m_pGLBufferData){
         m_pGLBufferData(target,size,data,usage);
     }   
-
 }
 
 GLuint OpenGLExtensionHandler::glCreateShader(GLenum type){
@@ -242,7 +252,6 @@ void OpenGLExtensionHandler::glGetShaderiv(GLuint shader, GLenum pname, GLint *p
     if(m_pGLGetShaderiv){
         m_pGLGetShaderiv(shader,pname,params);
     }
-
 }
 void OpenGLExtensionHandler::glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei *length, GLchar *infoLog){
     if(m_pGLGetShaderInfoLog){
@@ -250,33 +259,81 @@ void OpenGLExtensionHandler::glGetShaderInfoLog(GLuint shader, GLsizei bufSize, 
     }   
 
 }
-void OpenGLExtensionHandler::glAttachShader(GLuint program, GLuint shader){
-    if(m_pGLAttachShader){
-        m_pGLAttachShader(program,shader);
-    }   
 
-}
 void OpenGLExtensionHandler::glDeleteShader(GLuint shader){
     if(m_pGLDeleteShader){
         m_pGLDeleteShader(shader);
     }
 }
 
+GLuint OpenGLExtensionHandler::glCreateProgram(){
+    if(m_pGLCreateProgram){
+        return m_pGLCreateProgram();
+    }
+}
+void OpenGLExtensionHandler::glAttachShader(GLuint program, GLuint shader){
+    if(m_pGLAttachShader){
+        m_pGLAttachShader(program,shader);
+    }   
+}
 void OpenGLExtensionHandler::glLinkProgram(GLuint program){
     if(m_pGLLinkProgram){
         m_pGLLinkProgram(program);
     }
 
 }
+void OpenGLExtensionHandler::glUseProgram(GLuint program){
+    if(m_pGLUseProgram){
+        m_pGLUseProgram(program);
+    }
+}
 void OpenGLExtensionHandler::glGetProgramiv(GLuint program, GLenum pname, GLint *params){
     if(m_pGLGetProgramiv){
         m_pGLGetProgramiv(program,pname,params);
     }
-
 }
 void OpenGLExtensionHandler::glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog){
     if(m_pGLGetProgramInfoLog){
         m_pGLGetProgramInfoLog(program,bufSize,length,infoLog);
+    }
+}
+
+GLenum OpenGLExtensionHandler::glGetError(){
+    if(m_pGlGetError){
+        return m_pGlGetError();
+    }else{
+        return GL_NO_ERROR;
+    }
+}
+
+void OpenGLExtensionHandler::CheckOpenGLError(const char* func, const char* fname, int line){
+    GLenum errorCode;
+    while((errorCode = glGetError()) != GL_NO_ERROR){
+        std::string error;
+        switch(errorCode){
+            case GL_INVALID_ENUM:
+                error = "INVALID_ENUM";
+                break;
+            case GL_INVALID_VALUE:
+                error = "INVALID_VALUE";
+                break;
+            case GL_INVALID_OPERATION:
+                error = "INVALID_OPERATION";
+                break;
+            case GL_STACK_OVERFLOW:
+                error = "STACK_OVERFLOW";
+                break;
+            case GL_STACK_UNDERFLOW:
+                error = "STACK_UNDERFLOW";
+                break;
+            case GL_OUT_OF_MEMORY:
+                error = "OUT_OF_MEMORY";
+                break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION:
+                error = "INVALID_FRAMEBUFFER_OPERATION";
+                break;
+        }
+        printf("OpenGL error %s, at %s:%i - for %s\t\n",error.c_str(),fname,line,func);
     }
 }
 

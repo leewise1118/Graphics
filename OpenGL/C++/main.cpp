@@ -1,4 +1,5 @@
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include <iostream>
 #include <QApplication>
 #include <QOpenGLContext>
@@ -12,75 +13,85 @@
 #include <cmath>
 #include <qopenglcontext.h>
 #include <qopenglfunctions_4_5_core.h>
+#include <qopenglshaderprogram.h>
+#include "FragmentShader.h"
+#include "ShaderProgram.h"
+#include "inc/ExtensionHandler.h"
 
 class OpenGLWindows: public QOpenGLWidget, public QOpenGLFunctions_4_5_Core{
   public:
     OpenGLWindows(QWidget *parent = nullptr)
     :QOpenGLWidget(parent)
-    ,handler(new OGL::OpenGLExtensionHandler()){
+    ,m_shaderProgram(new OGL::ShaderProgram())
+    ,VAO(0)
+    ,VBO(0){
         timer = new QTimer(this);
         connect(timer, &QTimer::timeout, this, &OpenGLWindows::updateFrame);
         timer->start(16);
     }
+
     ~OpenGLWindows(){
-        if(handler){
-            delete handler;
-            handler = nullptr;
+        if(timer){
+            delete timer;
+            timer = nullptr;
+        }
+        if(m_shaderProgram){
+            delete m_shaderProgram;
         }
     }
 
     void initializeGL() override{
-        initializeOpenGLFunctions();
+
+        if(!initializeOpenGLFunctions()){
+            qDebug()<<"QOpenGL function initialezed failed";
+        }
+        const GLubyte* version = glGetString(GL_VERSION);
+        const GLubyte* vendor = glGetString(GL_VENDOR);
+        const GLubyte* renderer = glGetString(GL_RENDERER);
+        const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+        GLint major, minor;
+        glGetIntegerv(GL_MAJOR_VERSION, &major);
+        glGetIntegerv(GL_MINOR_VERSION, &minor);
+        qDebug()<<"OpenGL Version:"<<reinterpret_cast<const char*>(version);
+        qDebug()<<"OpenGL Vendor:"<<reinterpret_cast<const char*>(vendor);
+        qDebug()<<"OpenGL Renderer:"<<reinterpret_cast<const char*>(renderer);
+        qDebug()<<"OpenGL GLSL Version:"<<reinterpret_cast<const char*>(glslVersion);
+        qDebug()<<"OpenGL Version:"<<major<<"."<<minor;
+
+        // program = new QOpenGLShaderProgram();
+        // program->addShaderFromSourceFile(QOpenGLShader::Vertex, "D:/code/Graphics/OpenGL/C++/GLSL/shader.vs");
+        // program->addShaderFromSourceFile(QOpenGLShader::Fragment, "D:/code/Graphics/OpenGL/C++/GLSL/shader.fs");
+        // program->link();
+
         // 顶点着色器源码
-        const char* vertexShaderSource = R"(
-        #version 330 core
-        layout (location = 0) in vec3 aPos;
-        void main(){
-            gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-        }
-        )";
-
         // 片段着色器源码
-        const char* fragmentShaderSource = R"(
-        #version 420 core
-        in vec3 fragColor;
-        out vec4 color;
-        void main() {
-            color = vec4(fragColor, 1.0);
-        }
-        )";
-        OGL::OGLVertexShader vertexShader = OGL::OGLVertexShader();
-        vertexShader.Create().GetSourceFrom(&vertexShaderSource).Compile();
-
-        // 初始化着色器程序
-        shaderProgram = new QOpenGLShaderProgram();
-        shaderProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-        shaderProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
-        shaderProgram->link();
+        OGL::VertexShader vertexShader = OGL::VertexShader("D:/code/Graphics/OpenGL/C++/GLSL/shader.vs");
+        OGL::FragmentShader fragmentShader = OGL::FragmentShader("D:/code/Graphics/OpenGL/C++/GLSL/shader.fs");
+        m_shaderProgram->create().attachShader(vertexShader).attachShader(fragmentShader).link();
 
         // 初始化 VAO 和 VBO
         float vertices[] = {
             // 位置        // 颜色
-            -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, // 左下角
-             0.5f, -0.5f,  0.0f, 1.0f, 0.0f, // 右下角
+            -0.5f, -0.5f,  1.0f,  0.0f, 0.0f, // 左下角
+             0.5f, -0.5f,  0.0f,  1.0f, 0.0f,// 右下角
              0.0f,  0.5f,  0.0f, 0.0f, 1.0f  // 顶部
         };
 
-        handler->glGenVertexArrays(1, &VAO);
-        handler->glGenBuffers(1, &VBO);
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
 
-        handler->glBindVertexArray(VAO);
+        glBindVertexArray(VAO);
 
-        handler->glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        handler->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-        handler->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-        handler->glEnableVertexAttribArray(0);
-        handler->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
-        handler->glEnableVertexAttribArray(1);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(2 * sizeof(float)));
+        glEnableVertexAttribArray(1);
 
-        handler->glBindBuffer(GL_ARRAY_BUFFER, 0);
-        handler->glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
 
         // 设置清屏颜色
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // 黑色
@@ -100,8 +111,8 @@ class OpenGLWindows: public QOpenGLWidget, public QOpenGLFunctions_4_5_Core{
         glClearColor(red, green, blue, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 使用着色器程序
-        shaderProgram->bind();
+        m_shaderProgram->use();
+        // program->bind();
 
         // 绑定 VAO
         glBindVertexArray(VAO);
@@ -112,8 +123,8 @@ class OpenGLWindows: public QOpenGLWidget, public QOpenGLFunctions_4_5_Core{
         // 解绑 VAO
         glBindVertexArray(0);
 
-        // 释放着色器程序
-        shaderProgram->release();
+        // program->release();
+
     }
 
     void resizeGL(int w, int h) override{
@@ -122,17 +133,22 @@ class OpenGLWindows: public QOpenGLWidget, public QOpenGLFunctions_4_5_Core{
 
 private slots:
     void updateFrame() {
-        // 请求重新绘制窗口
-        // if (!isExposed())
-        //     return;
-        update();
+        makeCurrent();
+
+        paintGL();
+        this->context()->swapBuffers(this->context()->surface());
+
+        doneCurrent();
     }
 
 private:
     QTimer *timer;
-    QOpenGLShaderProgram* shaderProgram;
+    OGL::ShaderProgram* m_shaderProgram;
+
+    // QT提供OpenGL Program
+    QOpenGLShaderProgram* program;
     GLuint VAO, VBO;
-    OGL::OpenGLExtensionHandler* handler;
+    // OGL::OpenGLExtensionHandler* handler;
 
 };
 

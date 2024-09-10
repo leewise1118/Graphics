@@ -11,6 +11,9 @@ set(CMAKE_AUTORCC ON)
 
 set(CMAKE_BUILD_TYPE Debug)
 
+add_definitions(-D __WINDOWS__)
+add_definitions(-D _DEBUG)
+
 
 # 设置生成compile_commands.json文件
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

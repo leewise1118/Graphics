@@ -6,29 +6,27 @@
 #include "BaseType.h"
 #include <GL/gl.h>
 #include <memory>
-#include "ShaderError.h"
+#include <string>
 
 namespace OGL{
 
 
-class OGLVertexShader: public std::enable_shared_from_this<OGLVertexShader>{
-    using Ptr = std::shared_ptr<OGLVertexShader>;
-    enum class VertexShaderError{
-        Success = 0,
-        CreateError,
-        CompileError,
-    };
+class VertexShader{
 public:
-    OGLVertexShader();
-    ~OGLVertexShader();
+    VertexShader(const GLchar* vertexPath);
+    ~VertexShader();
 
     
     GLuint glCreateShader(GLenum type);
     void glShaderSource(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
 
-    auto Create()-> OGLVertexShader&;
-    auto GetSourceFrom(const GLchar *const* GLSL_source)->OGLVertexShader&;
-    auto Compile()->OGLVertexShader&;
+    auto create()-> VertexShader&;
+    auto readGLSLandCompile(const GLchar* vertexPath)->void;
+    auto deleteShader()->bool;
+
+    auto getShader()->GLuint{
+        return m_vertexShader;
+    }
 
 private:
     GLuint m_vertexShader;
